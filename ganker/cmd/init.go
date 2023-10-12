@@ -7,15 +7,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Define the init command
 var (
 	initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize a new container",
 		Long:  `Initialize a new container`,
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logrus.Infof("container init")
 			command := args[0]
-			logrus.Infof("Init command %s", command)
 			err := container.InitRunContainerProcess(command, nil)
 			return err
 		},
