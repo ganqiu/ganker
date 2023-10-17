@@ -30,7 +30,6 @@ func Execute() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-
 }
 
 func initCommandLogger() *log.Logger {

@@ -20,12 +20,9 @@ func (c *CpuShareSubSystem) Set(cgroupPath string, res *ResourceConfig) error {
 	if err != nil {
 		return err
 	}
-	if res.CpuQuota == "" {
-		return nil
-	}
 	// Write the cpu.cfs_quota_us file
 	if err := os.WriteFile(path.Join(subsysCgroupPath, cpuShareLimit), []byte(res.CpuQuota), 0644); err != nil {
-		return fmt.Errorf("set cgroup cpu quota fail %v", err)
+		return fmt.Errorf("set %s cgroup fail %v", cpuShareLimit, err)
 	}
 	return nil
 }
@@ -35,16 +32,19 @@ func (c *CpuShareSubSystem) Delete(cgroupPath string) error {
 	if err != nil {
 		return err
 	}
-	return os.Remove(subsysCgroupPath)
+	if err := os.Remove(subsysCgroupPath); err != nil {
+		return fmt.Errorf("remove %s cgroup fail %v", cpuShareLimit, err)
+	}
+	return nil
 }
 
 func (c *CpuShareSubSystem) Apply(cgroupPath string, pid int) error {
 	subsysCgroupPath, err := FindCgroupPath(c.Name(), cgroupPath, true)
 	if err != nil {
-		return fmt.Errorf("get cgroup %s error: %v", cgroupPath, err)
+		return err
 	}
 	if err = os.WriteFile(path.Join(subsysCgroupPath, processIdPath), []byte(strconv.Itoa(pid)), 0644); err != nil {
-		return fmt.Errorf("set cgroup proc fail,error:%v", err.Error())
+		return fmt.Errorf("set %s cgroup proc fail,error:%v", cpuShareLimit, err)
 	}
 	return nil
 }

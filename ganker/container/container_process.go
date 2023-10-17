@@ -44,9 +44,13 @@ func RunContainer(tty bool, command string, resourceConfig *subsystem.ResourceCo
 	defer cgroupManager.Delete()
 
 	// set resource limitation
-	cgroupManager.Set(resourceConfig)
+	if err := cgroupManager.Set(resourceConfig); err != nil {
+		logrus.Errorf("Set cgroup error %v", err)
+	}
 	// add the process into cgroup
-	cgroupManager.Apply(parent.Process.Pid)
+	if err := cgroupManager.Apply(parent.Process.Pid); err != nil {
+		logrus.Errorf("Apply cgroup error %v", err)
+	}
 	if err := parent.Wait(); err != nil {
 		logrus.Errorf("wait parent process error %v", err)
 	}

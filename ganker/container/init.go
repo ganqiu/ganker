@@ -22,6 +22,7 @@ func InitRunContainerProcess(command string, args []string) error {
 	// mount /proc to /proc
 	if err := syscall.Mount("", "/proc", "proc", uintptr(defaultMountFlags), ""); err != nil {
 		logrus.Errorf("mount proc error %v", err)
+		return err
 	}
 
 	argv := []string{command}

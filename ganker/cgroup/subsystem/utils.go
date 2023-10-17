@@ -41,11 +41,11 @@ func FindCgroupPath(subsystem string, cgroupPath string, autoCreate bool) (strin
 	if _, err := os.Stat(path.Join(cgroupRoot, cgroupPath)); err == nil || (autoCreate && errors.Is(err, os.ErrNotExist)) {
 		if errors.Is(err, os.ErrNotExist) {
 			if err := os.Mkdir(path.Join(cgroupRoot, cgroupPath), 0755); err != nil {
-				return "", fmt.Errorf("error create cgroup:%v", err)
+				return "", fmt.Errorf("error create %v cgroup:%v", subsystem, err)
 			}
 		}
 		return path.Join(cgroupRoot, cgroupPath), nil
 	} else {
-		return "", fmt.Errorf("cgroup path error:%v", err)
+		return "", fmt.Errorf("find cgroup in path \"%v\" error:%v", cgroupPath, err)
 	}
 }

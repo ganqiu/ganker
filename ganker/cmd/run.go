@@ -10,8 +10,12 @@ import (
 
 var (
 	tty            bool
-	ResourceConfig = &subsystem.ResourceConfig{}
-	CgroupName     = "GankeCgroup"
+	ResourceConfig = &subsystem.ResourceConfig{
+		Memory:   "9223372036854771712",
+		CpuShare: "1024",
+		CpuQuota: "-1",
+	}
+	CgroupName = "GankeCgroup"
 )
 
 // Define the run command
@@ -20,14 +24,13 @@ var (
 		Use:   "run",
 		Short: "Create a container ",
 		Long:  `Create a container by ganker run  [arg]`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 1 {
 				CommandLogger.Info("missing container command")
 			}
 			command := args[0]
 			CommandLogger.Infof("Run command %s", command)
 			container.RunContainer(tty, command, ResourceConfig)
-			return nil
 		},
 	}
 )

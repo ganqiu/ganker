@@ -1,6 +1,8 @@
 package cgroup
 
-import "go_docker_learning/ganker/cgroup/subsystem"
+import (
+	"go_docker_learning/ganker/cgroup/subsystem"
+)
 
 type CgroupManager struct {
 	// cgroup path in the hierarchy, relative to the each root cgroup
@@ -17,14 +19,20 @@ func NewCgroupManager(path string) *CgroupManager {
 
 func (c *CgroupManager) Apply(pid int) error {
 	for _, subSysInit := range subsystem.SubsystemsInit {
-		subSysInit.Apply(c.Path, pid)
+		err := subSysInit.Apply(c.Path, pid)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (c *CgroupManager) Set(res *subsystem.ResourceConfig) error {
 	for _, subSysInit := range subsystem.SubsystemsInit {
-		subSysInit.Set(c.Path, res)
+		err := subSysInit.Set(c.Path, res)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
