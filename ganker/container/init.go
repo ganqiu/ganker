@@ -9,7 +9,8 @@ import (
 
 // NewParentProcess is used to create a parent process
 func InitRunContainerProcess(command string, args []string) error {
-	logrus.Infof("command %s", command)
+
+	logrus.Infof("Run Command %s", command)
 
 	// set /proc as a private mount namespace's mount point
 	if err := syscall.Mount("", "/proc", "proc", syscall.MS_REC|syscall.MS_PRIVATE, ""); err != nil {
@@ -31,5 +32,4 @@ func InitRunContainerProcess(command string, args []string) error {
 		return err
 	}
 	return nil
-
 }

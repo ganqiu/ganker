@@ -1,6 +1,8 @@
 package container
 
 import (
+	"go_docker_learning/ganker/cgroup"
+	"go_docker_learning/ganker/cgroup/subsystem"
 	"os"
 	"os/exec"
 	"syscall"
@@ -31,11 +33,22 @@ func InitNewParentProcess(tty bool, command string) *exec.Cmd {
 	return cmd
 }
 
-func RunContainer(tty bool, command string) {
+func RunContainer(tty bool, command string, resourceConfig *subsystem.ResourceConfig) {
 	parent := InitNewParentProcess(tty, command)
+
 	if err := parent.Start(); err != nil {
 		logrus.Error(err)
 	}
-	parent.Wait()
+	cgroupManager := cgroup.NewCgroupManager("GankerCgroup")
+
+	defer cgroupManager.Delete()
+
+	// set resource limitation
+	cgroupManager.Set(resourceConfig)
+	// add the process into cgroup
+	cgroupManager.Apply(parent.Process.Pid)
+	if err := parent.Wait(); err != nil {
+		logrus.Errorf("wait parent process error %v", err)
+	}
 	os.Exit(-1)
 }

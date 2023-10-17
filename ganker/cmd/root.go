@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var CommandLogger = initCommandLogger()
+
 var (
 	rootCmd = &cobra.Command{
 		Use: "ganker",
@@ -19,12 +21,6 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
-
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			log.SetFormatter(&log.JSONFormatter{})
-			log.SetOutput(os.Stdout)
-			return nil
-		},
 	}
 )
 
@@ -35,4 +31,17 @@ func Execute() {
 		os.Exit(1)
 	}
 
+}
+
+func initCommandLogger() *log.Logger {
+	logger := log.New()
+	logger.SetFormatter(&log.TextFormatter{
+		ForceColors:     true,
+		PadLevelText:    true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	logger.SetLevel(log.InfoLevel)
+	logger.SetOutput(os.Stdout)
+	logger.WithField("part", "command")
+	return logger
 }

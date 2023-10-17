@@ -3,7 +3,6 @@ package cmd
 import (
 	"go_docker_learning/ganker/container"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,9 +14,11 @@ var (
 		Long:  `Initialize a new container`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Infof("container init")
 			command := args[0]
 			err := container.InitRunContainerProcess(command, nil)
+			if err != nil {
+				CommandLogger.Infof("init container failed %v", err)
+			}
 			return err
 		},
 	}
