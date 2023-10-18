@@ -28,9 +28,9 @@ var (
 			if len(args) < 1 {
 				CommandLogger.Info("missing container command")
 			}
-			command := args[0]
-			CommandLogger.Infof("Run command %s", command)
-			container.RunContainer(tty, command, ResourceConfig)
+			CommandLogger.Infof("Running Container")
+			CommandLogger.Infof("command from tty:%v", args)
+			container.RunContainer(tty, args, ResourceConfig)
 		},
 	}
 )
@@ -39,7 +39,7 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 	// add a parameter, used to specify whether to use tty
 	runCmd.Flags().BoolVarP(&tty, "it", "i", false, "enable tty")
-	runCmd.Flags().StringVarP(&ResourceConfig.Memory, "memory-limit", "m", "9223372036854771712", "memory limit")
-	runCmd.Flags().StringVarP(&ResourceConfig.CpuShare, "cpu-shares", "cs", "1024", "cpu-shares limit")
-	runCmd.Flags().StringVarP(&ResourceConfig.CpuQuota, "cpu-quotas", "cq", "-1", "cpuset-cpus limit")
+	runCmd.Flags().StringVar(&ResourceConfig.Memory, "memory-limit", "9223372036854771712", "memory limit")
+	runCmd.Flags().StringVar(&ResourceConfig.CpuShare, "cpu-shares", "1024", "cpu-shares limit")
+	runCmd.Flags().StringVar(&ResourceConfig.CpuQuota, "cpu-quotas", "-1", "cpuset-cpus limit")
 }

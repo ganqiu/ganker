@@ -14,8 +14,7 @@ var (
 		Long:  `Initialize a new container`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-			command := args[0]
-			err := container.InitRunContainerProcess(command, nil)
+			err := container.InitRunContainerProcess()
 			if err != nil {
 				CommandLogger.Infof("init container failed %v", err)
 			}

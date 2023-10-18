@@ -21,7 +21,8 @@ func (c *CpuShareSubSystem) Set(cgroupPath string, res *ResourceConfig) error {
 		return err
 	}
 	// Write the cpu.cfs_quota_us file
-	if err := os.WriteFile(path.Join(subsysCgroupPath, cpuShareLimit), []byte(res.CpuQuota), 0644); err != nil {
+	if err := os.WriteFile(path.Join(subsysCgroupPath, cpuShareLimit), []byte(res.CpuShare), 0644); err != nil {
+		fmt.Println("error happen", res.CpuShare)
 		return fmt.Errorf("set %s cgroup fail %v", cpuShareLimit, err)
 	}
 	return nil
