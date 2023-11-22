@@ -42,7 +42,7 @@ func (c *CpuShareSubSystem) Delete(cgroupPath string) error {
 func (c *CpuShareSubSystem) Apply(cgroupPath string, pid int) error {
 	subsysCgroupPath, err := FindCgroupPath(c.Name(), cgroupPath, true)
 	if err != nil {
-		return err
+		return fmt.Errorf("get cgroup %s error: %v", cgroupPath, err)
 	}
 	if err = os.WriteFile(path.Join(subsysCgroupPath, processIdPath), []byte(strconv.Itoa(pid)), 0644); err != nil {
 		return fmt.Errorf("set %s cgroup proc fail,error:%v", cpuShareLimit, err)

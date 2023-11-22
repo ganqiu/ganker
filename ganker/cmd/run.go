@@ -15,7 +15,7 @@ var (
 		CpuShare: "1024",
 		CpuQuota: "-1",
 	}
-	CgroupName = "GankeCgroup"
+	// CgroupName = "GankerCgroup"
 )
 
 // Define the run command

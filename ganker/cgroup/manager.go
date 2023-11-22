@@ -1,7 +1,10 @@
 package cgroup
 
 import (
+	"fmt"
 	"go_docker_learning/ganker/cgroup/subsystem"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type CgroupManager struct {
@@ -21,8 +24,10 @@ func (c *CgroupManager) Apply(pid int) error {
 	for _, subSysInit := range subsystem.SubsystemsInit {
 		err := subSysInit.Apply(c.Path, pid)
 		if err != nil {
+			log.Errorf("apply %v cgroup fail", subSysInit.Name())
 			return err
 		}
+		fmt.Println("Apply " + subSysInit.Name() + " success")
 	}
 	return nil
 }
@@ -31,8 +36,10 @@ func (c *CgroupManager) Set(res *subsystem.ResourceConfig) error {
 	for _, subSysInit := range subsystem.SubsystemsInit {
 		err := subSysInit.Set(c.Path, res)
 		if err != nil {
+			log.Errorf("set %v cgroup fail", subSysInit.Name())
 			return err
 		}
+		fmt.Println("set " + subSysInit.Name() + " success")
 	}
 	return nil
 }
@@ -42,6 +49,7 @@ func (c *CgroupManager) Delete() error {
 		if err := subSysInit.Delete(c.Path); err != nil {
 			return err
 		}
+		fmt.Println("Delete " + subSysInit.Name() + " success")
 	}
 	return nil
 }

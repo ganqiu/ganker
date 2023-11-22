@@ -23,8 +23,12 @@ func FindCgroupMountPoint(subsystem string) string {
 		txt := scanner.Text()
 		fields := strings.Split(txt, " ")
 		if strings.Contains(fields[len(fields)-1], subsystem) {
-			if strings.Contains(fields[4], ",") {
-				return strings.Split(fields[4], ",")[0]
+			if subsystem == "cpu" {
+				if strings.Contains(fields[4], "cpu,") {
+					fmt.Println("path is :" + strings.Split(fields[4], ",")[0])
+					return strings.Split(fields[4], ",")[0]
+				}
+				continue
 			}
 			return fields[4]
 		}
@@ -40,7 +44,7 @@ func FindCgroupPath(subsystem string, cgroupPath string, autoCreate bool) (strin
 	cgroupRoot := FindCgroupMountPoint(subsystem)
 	if _, err := os.Stat(path.Join(cgroupRoot, cgroupPath)); err == nil || (autoCreate && errors.Is(err, os.ErrNotExist)) {
 		if errors.Is(err, os.ErrNotExist) {
-			if err := os.Mkdir(path.Join(cgroupRoot, cgroupPath), 0755); err != nil {
+			if err := os.MkdirAll(path.Join(cgroupRoot, cgroupPath), 0755); err != nil {
 				return "", fmt.Errorf("error create %v cgroup:%v", subsystem, err)
 			}
 		}
