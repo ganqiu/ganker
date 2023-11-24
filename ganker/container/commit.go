@@ -15,7 +15,7 @@ func CommitContainer(containerId, image string) {
 		log.Panic("container %v not found", containerId)
 	}
 
-	imageDir := ImageRootPath + image
+	imageDir := ImageRootPath + image + ".tar"
 	if exist, err := checkFileOrDirExist(imageDir); err != nil {
 		log.Panic("check image dir exist failed ", err)
 	} else if exist {
