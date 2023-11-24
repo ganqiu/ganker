@@ -25,7 +25,6 @@ func FindCgroupMountPoint(subsystem string) string {
 		if strings.Contains(fields[len(fields)-1], subsystem) {
 			if subsystem == "cpu" {
 				if strings.Contains(fields[4], "cpu,") {
-					fmt.Println("path is :" + strings.Split(fields[4], ",")[0])
 					return strings.Split(fields[4], ",")[0]
 				}
 				continue

@@ -20,4 +20,8 @@ func CreateRootDir() {
 	if err := os.MkdirAll(ContainerRootPath, 0777); err != nil {
 		log.Panic("Fail to create root dir of container: " + err.Error())
 	}
+
+	if err := os.MkdirAll(VolumeRootPath, 0777); err != nil {
+		log.Panic("Fail to create root dir of volume: " + err.Error())
+	}
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"go_docker_learning/ganker/container"
+	"strings"
 
 	"go_docker_learning/ganker/cgroup/subsystem"
 
@@ -16,6 +17,8 @@ var (
 		CpuQuota: "-1",
 	}
 	// CgroupName = "GankerCgroup"
+	volume string
+	image  string
 )
 
 // Define the run command
@@ -28,9 +31,9 @@ var (
 			if len(args) < 1 {
 				CommandLogger.Info("missing container command")
 			}
-			CommandLogger.Infof("Running Container")
-			CommandLogger.Infof("command from tty:%v", args)
-			container.RunContainer(tty, args, ResourceConfig)
+			CommandLogger.Infof("Running Container...")
+			CommandLogger.Infof("Run command:%v", strings.Join(args, " "))
+			container.RunContainer(tty, args, image, volume, ResourceConfig)
 		},
 	}
 )
@@ -42,4 +45,6 @@ func init() {
 	runCmd.Flags().StringVar(&ResourceConfig.Memory, "memory-limit", "9223372036854771712", "memory limit")
 	runCmd.Flags().StringVar(&ResourceConfig.CpuShare, "cpu-shares", "1024", "cpu-shares limit")
 	runCmd.Flags().StringVar(&ResourceConfig.CpuQuota, "cpu-quotas", "-1", "cpuset-cpus limit")
+	runCmd.Flags().StringVarP(&volume, "volume", "v", "", "add volume")
+	runCmd.Flags().StringVarP(&image, "image", "m", "busybox", "choose image")
 }

@@ -19,7 +19,7 @@ const LowerName = "lower_layer"
 const UpperName = "upper_layer"
 
 // WorkSpaceName the prefix name of container layer
-const WorkSpaceName = "work_base_layer"
+const WorkSpaceName = "work_base"
 
 // MergeLayerName the prefix name of merge layer
 const MergeLayerName = "merge_layer"
@@ -30,22 +30,44 @@ const ImageRootPath = "./images/"
 // ContainerRootPath is the root path of container
 const ContainerRootPath = "./containers/"
 
-func newWorkSpace(image string) (string, string) {
+// VolumeRootPath is the root path of volume
+const VolumeRootPath = "./volumes/"
+
+// NewWorkSpace create the work space for the container
+func newWorkSpace(image, volume string) (string, string) {
+	var volumeArray []string
+	var err error
+	if volume != "" {
+		volumeArray, err = extractVolume(volume)
+		if volumeArray == nil {
+			log.Panic("Fail to extract the volume: " + err.Error())
+		}
+	}
+	iamgePath := ImageRootPath + image + ".tar"
+	if exists, err := checkFileOrDirExist(iamgePath); err != nil {
+		log.Panic("Fail to judge if the root dir of image exist: " + err.Error())
+	} else if !exists {
+		log.Panic("Image not found")
+	}
 	id := GenerateContainerId(24)
 	containerDir := ContainerRootPath + id + "/"
 	if err := os.MkdirAll(containerDir, 0777); err != nil {
-		log.Panic("Fail to create the container dir: " + err.Error())
+		log.Panic("Fail to create the container dir:" + err.Error())
 	}
 
 	// create the layers
 	newUpperLayer(containerDir)
-	newLowerLayer(containerDir, image)
+	newLowerLayer(containerDir, iamgePath)
 	newMergeLayer(containerDir)
 	newWorkLayer(containerDir)
 
 	// mount the overlay file system
 	execMountFS(containerDir)
-	log.Infof("Container id :%s Created", id)
+
+	if volume != "" {
+		mountVolume(volumeArray, containerDir)
+	}
+	fmt.Printf("container: %v is created \n", id)
 	return containerDir, id
 }
 
@@ -80,14 +102,7 @@ func newMergeLayer(containerDir string) string {
 }
 
 // newLowerLayer create the read only layer
-func newLowerLayer(containerDir, image string) string {
-
-	iamgePath := ImageRootPath + image + ".tar"
-	if exists, err := checkFileOrDirExist(iamgePath); err != nil {
-		log.Panic("Fail to judge if the root dir of image exist: " + err.Error())
-	} else if !exists {
-		log.Panic("Image not found")
-	}
+func newLowerLayer(containerDir, imagePath string) string {
 
 	// create the read only layer
 	lowerDir := containerDir + LowerName
@@ -96,11 +111,10 @@ func newLowerLayer(containerDir, image string) string {
 	}
 
 	// decompression the image to the lower dir
-	if err := exec.Command("tar", "-xvf", iamgePath, "-C", lowerDir).Run(); err != nil {
+	if err := exec.Command("tar", "-xvf", imagePath, "-C", lowerDir).Run(); err != nil {
 		log.Panic("Fail to extract the image to the lower dir: " + err.Error())
 	}
 
-	log.Println("Decompression the image to the lower dir successfully")
 	return lowerDir
 }
 
@@ -112,7 +126,6 @@ func execMountFS(containerDir string) {
 		log.Panic("Fail to mount the overlay file system: " + err.Error())
 	}
 
-	log.Println("Mount the overlay file system successfully")
 }
 
 func deleteWriteLayer(containerDir string) {
@@ -135,8 +148,15 @@ func deleteMountPoint(containerDir string) {
 	log.Println("Unmount the overlay file system successfully")
 }
 
-func deleteWorkSpace(containerDir string) {
-	// delete workSpace
+func deleteWorkSpace(containerDir, volume string) {
+	// check if the volume is empty
+	if volume != "" {
+		volumeArray, err := extractVolume(volume)
+		if volumeArray == nil {
+			log.Panic("Fail to extract the volume when delete: " + err.Error())
+		}
+		deleteVolume(containerDir, volumeArray[1])
+	}
 	deleteMountPoint(containerDir)
 	deleteWriteLayer(containerDir)
 }

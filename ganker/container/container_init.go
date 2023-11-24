@@ -18,10 +18,6 @@ func InitRunContainerProcess() error {
 		return fmt.Errorf("get parent command error, cmdArray is nil")
 	}
 
-	if len(cmdArray) != 0 {
-		logrus.Infof("Run Command %v", cmdArray)
-	}
-
 	// set Mount
 	if err := MountSet(); err != nil {
 		return err
@@ -45,7 +41,7 @@ func InitRunContainerProcess() error {
 }
 
 // initNewParentProcess it will clone a new process as parent process and calling /proc/self/exe with init as the first argument
-func initNewParentProcess(tty bool, imageName string) (*exec.Cmd, *os.File, string, string) {
+func initNewParentProcess(tty bool, imageName, volume string) (*exec.Cmd, *os.File, string, string) {
 	// create a pipe,it will be used to send command to child process,in another word, it can be used to send command to init process
 	readPipe, writePipe, err := newPipe()
 	if err != nil {
@@ -68,7 +64,7 @@ func initNewParentProcess(tty bool, imageName string) (*exec.Cmd, *os.File, stri
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-	containerDir, containerId := newWorkSpace(imageName)
+	containerDir, containerId := newWorkSpace(imageName, volume)
 	// ExtraFiles specifies additional open files to be inherited by the new process,
 	// it will deliver the pipe file to child process
 	// as file descriptor 0,1,2 are used for stdin,stdout,stderr,

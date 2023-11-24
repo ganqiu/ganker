@@ -21,7 +21,6 @@ func newPipe() (*os.File, *os.File, error) {
 
 // sendInitCommand send command to child process
 func sendInitCommand(comArray []string, writePipe *os.File) error {
-	logrus.Infof("command all is %s", comArray[0])
 	command := strings.Join(comArray, " ")
 	if _, err := writePipe.WriteString(command); err != nil {
 		return fmt.Errorf("write pipe error %v", err)

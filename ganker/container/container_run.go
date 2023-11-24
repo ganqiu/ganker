@@ -8,9 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RunContainer(tty bool, comArray []string, resourceConfig *subsystem.ResourceConfig) {
-	imageName := "busybox"
-	parent, writePipe, containerDir, id := initNewParentProcess(tty, imageName)
+func RunContainer(tty bool, comArray []string, imageName string, volume string, resourceConfig *subsystem.ResourceConfig) {
+	parent, writePipe, containerDir, id := initNewParentProcess(tty, imageName, volume)
 
 	if err := parent.Start(); err != nil {
 		logrus.Error(err)
@@ -19,7 +18,7 @@ func RunContainer(tty bool, comArray []string, resourceConfig *subsystem.Resourc
 	// Initialize cgroup manager
 	cgroupManager := cgroup.NewCgroupManager("GankerCgroup" + "/" + id)
 	defer cgroupManager.Delete()
-	defer deleteWorkSpace(containerDir)
+	defer deleteWorkSpace(containerDir, volume)
 	// set resource limitation
 	if err := cgroupManager.Set(resourceConfig); err != nil {
 		logrus.Errorf("%v", err)
