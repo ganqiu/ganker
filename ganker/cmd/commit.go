@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Define the init command
+// Define the commit command
 var (
 	commitCmd = &cobra.Command{
 		Use:   "commit",

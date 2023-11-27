@@ -22,7 +22,7 @@ func CommitContainer(containerId, image string) {
 		log.Panic("image name already exist")
 	}
 
-	if err := exec.Command("tar", "-czf", imageDir, "-C", containerDir, ".").Run(); err != nil {
+	if err := exec.Command("tar", "-czf", imageDir, "-C", containerDir+MergeLayerName, ".").Run(); err != nil {
 		log.Panic("package container dir failed ", err)
 	}
 
