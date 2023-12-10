@@ -1,3 +1,6 @@
-/containers
-/images
+/storage
+./images/*
+
 ganker
+containers
+show.json

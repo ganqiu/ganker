@@ -14,7 +14,7 @@ var (
 		Long:  `package container into image`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) < 1 {
+			if len(args) < 2 {
 				CommandLogger.Info("missing container command")
 			}
 			container.CommitContainer(args[0], args[1])

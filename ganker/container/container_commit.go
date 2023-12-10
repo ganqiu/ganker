@@ -8,22 +8,27 @@ import (
 
 // CommitContainer commit the container to image
 func CommitContainer(containerId, image string) {
-	containerDir := ContainerRootPath + containerId
+	containerDir := StorageRootPath + containerId
 	if exist, err := checkFileOrDirExist(containerDir); err != nil {
-		log.Panic("check container dir exist failed ", err)
+		log.Errorf("check container dir exist failed ", err)
+		return
 	} else if !exist {
-		log.Panic("container %v not found", containerId)
+		log.Infof("container %v not found", containerId)
+		return
 	}
 
 	imageDir := ImageRootPath + image + ".tar"
 	if exist, err := checkFileOrDirExist(imageDir); err != nil {
-		log.Panic("check image dir exist failed ", err)
+		log.Errorf("check image dir exist failed ", err)
+		return
 	} else if exist {
-		log.Panic("image name already exist")
+		log.Infof("image name already exist")
+		return
 	}
 
 	if err := exec.Command("tar", "-czf", imageDir, "-C", containerDir+"/"+MergeLayerName, ".").Run(); err != nil {
-		log.Panic("package container dir failed ", err)
+		log.Errorf("package container dir failed ", err)
+		return
 	}
 
 	log.Infof("package container %v to image %v success", containerId, image)

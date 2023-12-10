@@ -11,29 +11,35 @@ import (
 
 var (
 	tty            bool
+	detach         bool
 	ResourceConfig = &subsystem.ResourceConfig{
 		Memory:   "9223372036854771712",
 		CpuShare: "1024",
 		CpuQuota: "-1",
 	}
-	// CgroupName = "GankerCgroup"
-	volume string
-	image  string
+	volume        string
+	image         string
+	containerName string
+	envSlice      []string
 )
 
 // Define the run command
 var (
 	runCmd = &cobra.Command{
-		Use:   "run",
+		Use:   "run [args...] [command] ",
 		Short: "Create a container ",
 		Long:  `Create a container by ganker run  [arg]`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 1 {
-				CommandLogger.Info("missing container command")
+				CommandLogger.Info("missing command")
 			}
 			CommandLogger.Infof("Running Container...")
 			CommandLogger.Infof("Run command:%v", strings.Join(args, " "))
-			container.RunContainer(tty, args, image, volume, ResourceConfig)
+			if tty && detach {
+				tty = false
+			}
+
+			container.RunContainer(tty, args, image, volume, ResourceConfig, containerName, envSlice)
 		},
 	}
 )
@@ -41,10 +47,13 @@ var (
 func init() {
 	rootCmd.AddCommand(runCmd)
 	// add a parameter, used to specify whether to use tty
-	runCmd.Flags().BoolVarP(&tty, "it", "i", false, "enable tty")
-	runCmd.Flags().StringVar(&ResourceConfig.Memory, "memory-limit", "9223372036854771712", "memory limit")
+	runCmd.Flags().BoolVarP(&tty, "it", "t", false, "enable tty")
+	runCmd.Flags().StringVar(&ResourceConfig.Memory, "memory-limit", "922337203685477171", "memory limit")
 	runCmd.Flags().StringVar(&ResourceConfig.CpuShare, "cpu-shares", "1024", "cpu-shares limit")
 	runCmd.Flags().StringVar(&ResourceConfig.CpuQuota, "cpu-quotas", "-1", "cpuset-cpus limit")
 	runCmd.Flags().StringVarP(&volume, "volume", "v", "", "add volume")
-	runCmd.Flags().StringVarP(&image, "image", "m", "busybox", "choose image")
+	runCmd.Flags().StringVarP(&image, "image", "i", "busybox", "choose image")
+	runCmd.Flags().BoolVarP(&detach, "detach", "d", false, "detach container")
+	runCmd.Flags().StringVarP(&containerName, "name", "n", "", "container name")
+	runCmd.Flags().StringSliceVarP(&envSlice, "env", "e", []string{}, "set environment")
 }

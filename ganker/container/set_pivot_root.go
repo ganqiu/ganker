@@ -10,7 +10,7 @@ import (
 )
 
 // it is used to pivot rootfs to a new rootfs
-func pivot_root(root string) error {
+func pivotRoot(root string) error {
 
 	// create a new mount point,it is different from the original mount point("/")
 	// now new "root" path changes to the new mount point
@@ -18,7 +18,7 @@ func pivot_root(root string) error {
 		return fmt.Errorf("mount rootfs to itself error: %v", err)
 	}
 
-	// create a old_put dir to store the old rootfs
+	// create an old_put dir to store the old rootfs
 	pivotDir := filepath.Join(root, ".pivot_root")
 
 	// check if the dir exists
@@ -60,7 +60,7 @@ func pivot_root(root string) error {
 func MountSet() error {
 
 	//set "/" as a private mount namespace's mount point
-	//as pivot is prohibitted if parent mount is shared
+	//as pivot is prohibited if parent mount is shared
 
 	rootfsMountFlags := syscall.MS_PRIVATE | syscall.MS_REC
 	if err := syscall.Mount("", "/", "", uintptr(rootfsMountFlags), ""); err != nil {
@@ -76,7 +76,7 @@ func MountSet() error {
 	}
 
 	// mount rootfs to the current dir
-	if err := pivot_root(pwd); err != nil {
+	if err := pivotRoot(pwd); err != nil {
 		return err
 	}
 

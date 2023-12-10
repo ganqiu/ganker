@@ -13,7 +13,7 @@ import (
 
 // extractVolume extract the volume from the volume string
 func extractVolume(volume string) ([]string, error) {
-	regexpPrefix, _ := regexp.Compile(`^(\./|~\/|\.\.\/|\/)`) // ./ ~/ ../ /
+	regexpPrefix, _ := regexp.Compile(`^(\./|~/|\.\./|/)`) // ./ ~/ ../ /
 	regexpVolume, _ := regexp.Compile(`[a-zA-Z0-9][a-zA-Z0-9_.-]`)
 	volumeArray := strings.Split(volume, ":")
 	if len(volumeArray) != 2 && volumeArray[0] != "" && volumeArray[1] != "" {
@@ -35,16 +35,19 @@ func extractVolume(volume string) ([]string, error) {
 // mountVolume mount the volume to the container
 func mountVolume(volumeArray []string, containerDir string) {
 	if err := os.MkdirAll(volumeArray[0], 0777); err != nil {
-		log.Panic("Fail to create the volume dir: " + err.Error())
+		log.Errorf("Fail to create the volume dir: " + err.Error())
+		os.Exit(-1)
 	}
 
 	containerMountPoint := containerDir + MergeLayerName + volumeArray[1]
 	if err := os.MkdirAll(containerMountPoint, 0777); err != nil {
-		log.Panic("Fail to create the container mount point: " + err.Error())
+		log.Errorf("Fail to create the container mount point: " + err.Error())
+		os.Exit(-1)
 	}
 
 	if err := syscall.Mount(volumeArray[0], containerMountPoint, "", syscall.MS_BIND, ""); err != nil {
-		log.Panic("Fail to mount the volume: " + err.Error())
+		log.Errorf("Fail to mount the volume: " + err.Error())
+		os.Exit(-1)
 	}
 }
 
@@ -52,6 +55,7 @@ func mountVolume(volumeArray []string, containerDir string) {
 func deleteVolume(containerDir, volume string) {
 	containerVolumePath := containerDir + MergeLayerName + volume
 	if err := syscall.Unmount(containerVolumePath, syscall.MNT_DETACH); err != nil {
-		log.Panic("Fail to unmount the volume: " + err.Error())
+		log.Errorf("Fail to unmount the volume: " + err.Error())
 	}
+	os.Exit(-1)
 }
