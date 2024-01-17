@@ -1,10 +1,11 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
 	"go_docker_learning/ganker/cmd"
 	"go_docker_learning/ganker/container"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -37,4 +38,6 @@ func init() {
 	if err := os.MkdirAll(container.ContainerRootPath, 0777); err != nil {
 		log.Panic("Fail to create root dir of container: " + err.Error())
 	}
+
+	// network root dir, which is used to store the network's info
 }

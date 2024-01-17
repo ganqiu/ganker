@@ -12,29 +12,31 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// LowerName  the prefix name of lower layer
-const LowerName = "lower"
+const (
+	// LowerName  the prefix name of lower layer
+	LowerName = "lower"
 
-// UpperName the prefix name of upper layer
-const UpperName = "diff"
+	// UpperName the prefix name of upper layer
+	UpperName = "diff"
 
-// WorkSpaceName the prefix name of container layer
-const WorkSpaceName = "work"
+	// WorkSpaceName the prefix name of container layer
+	WorkSpaceName = "work"
 
-// MergeLayerName the prefix name of merge layer
-const MergeLayerName = "merged"
+	// MergeLayerName the prefix name of merge layer
+	MergeLayerName = "merged"
 
-// ImageRootPath is the root path of image compressed file
-const ImageRootPath = "./images/"
+	// ImageRootPath is the root path of image compressed file
+	ImageRootPath = "./images/"
 
-// StorageRootPath is the root path of container
-const StorageRootPath = "./storage/"
+	// StorageRootPath is the root path of container
+	StorageRootPath = "./storage/"
 
-// VolumeRootPath is the root path of volume
-const VolumeRootPath = "./volumes/"
+	// VolumeRootPath is the root path of volume
+	VolumeRootPath = "./volumes/"
 
-// ContainerRootPath is the root path of container
-const ContainerRootPath = "./containers/"
+	// ContainerRootPath is the root path of container
+	ContainerRootPath = "./containers/"
+)
 
 // NewWorkSpace create the work space for the container
 func newWorkSpace(id, image, volume string) (string, string) {
