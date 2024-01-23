@@ -12,9 +12,8 @@ import (
 const ipamAllocatorPath = "./networks/ipam.json"
 
 type IPAM struct {
-	SubnetAllocator string
-	Subnets         map[string]string //map of subnet and its allocated ip
-	// key is subnet, value is gateway ip(Bitmap string)
+	SubnetAllocator string            `json:"subnet_allocator"`
+	Subnets         map[string]string `json:"subnets"` //map of subnet and its allocated ip ,key is subnet, value is gateway ip(Bitmap string)
 }
 
 // load ipam from config file
@@ -30,13 +29,7 @@ func (ipam *IPAM) load() error {
 	}
 	defer configFile.Close()
 
-	content, err := io.ReadAll(configFile)
-	if err != nil {
-		return err
-	}
-
-	// unmarshal content to ipam
-	if err := json.Unmarshal(content, &ipam.Subnets); err != nil {
+	if err := json.NewDecoder(configFile).Decode(&ipam.Subnets); err != nil && err != io.EOF {
 		return err
 	}
 
@@ -52,11 +45,9 @@ func (ipam *IPAM) dump() error {
 	if err != nil {
 		return err
 	}
-	ipamConfigJson, err := json.Marshal(ipam.Subnets)
-	if err != nil {
-		return err
-	}
-	if _, err := configFile.Write(ipamConfigJson); err != nil {
+	defer configFile.Close()
+
+	if err := json.NewEncoder(configFile).Encode(ipam.Subnets); err != nil {
 		return err
 	}
 	return nil

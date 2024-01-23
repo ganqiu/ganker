@@ -69,14 +69,14 @@ func (d *BridgeNetDriver) Connect(net *Net, endpoint *NetPoint) error {
 
 	// configure veth pair
 	la := netlink.NewLinkAttrs()
-	la.Name = endpoint.IDAddress[:5]
+	la.Name = endpoint.ID[:5]
 	// mount one end of veth pair to the bridge in network (as Master)
 	la.MasterIndex = interf.Attrs().Index
 
 	// create veth pair , one end of veth pair is mounted to the bridge in network(as Peer)
 	endpoint.Device = netlink.Veth{
 		LinkAttrs: la,
-		PeerName:  endpoint.IDAddress[:5],
+		PeerName:  endpoint.ID[:5],
 	}
 
 	// create veth pair interface
