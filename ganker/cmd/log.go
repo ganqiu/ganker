@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"go_docker_learning/ganker/container"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"go_docker_learning/ganker/container"
 )
 
 var (
@@ -18,7 +19,6 @@ var (
 				return
 			}
 			container.ShowContainerLog(args[0])
-			return
 		},
 	}
 )

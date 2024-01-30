@@ -1,16 +1,14 @@
 package network
 
 import (
-	"encoding/json"
 	"fmt"
-	"go_docker_learning/ganker/container"
 	"net"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strings"
-	"text/tabwriter"
+
+	json "github.com/goccy/go-json"
 
 	"github.com/coreos/go-iptables/iptables"
 	"github.com/vishvananda/netlink"
@@ -48,135 +46,8 @@ type NetDriver interface {
 	Disconnect(net *Net, endpoint *NetPoint) error   // disconnect a container from the net
 }
 
-// CreateNet create a net with the driver and subnet
-func CreateNet(driver, subnet, name string) error {
-	// parse subnet
-	_, ipNet, err1 := net.ParseCIDR(subnet)
-	if err1 != nil {
-		return fmt.Errorf("parse subnet %s failed, err: %v", subnet, err1)
-	}
-
-	// Allocate ip for the subnet
-	gatewayIp, err := ipAllocator.Allocate(ipNet)
-
-	if err != nil {
-		return fmt.Errorf("allocate ip for subnet %s failed, err: %v", subnet, err)
-	}
-
-	ipNet.IP = gatewayIp
-
-	nw, err := netDriver[driver].Create(ipNet.String(), name)
-	if err != nil {
-		return fmt.Errorf("create network failed, err: %v", err)
-	}
-
-	return nw.dump(NetConfigRootPath)
-
-}
-
-// Connect connect a container to the net
-func Connect(netName string, info *container.Info) error {
-	// get net from network map
-	nw, ok := network[netName]
-	if !ok {
-		return fmt.Errorf("no such network: %s", netName)
-	}
-
-	// allocate ip for the container
-	ip, err := ipAllocator.Allocate(nw.IpRange)
-	if err != nil {
-		return fmt.Errorf("allocate ip for subnet %s failed, err: %v", nw.IpRange.String(), err)
-	}
-
-	// construct netpoint
-	netEndPoint := &NetPoint{
-		ID:          fmt.Sprintf("%s-%s", info.ContainerId, nw.Name),
-		IP:          ip,
-		PortMapping: info.PortMapping,
-		Net:         nw,
-	}
-
-	if err := netDriver[nw.Driver].Connect(nw, netEndPoint); err != nil {
-		return fmt.Errorf("connect network %s failed, err: %v", nw.Name, err)
-	}
-
-	if err := configEndpointIpAndRoute(netEndPoint, info); err != nil {
-		return fmt.Errorf("config endpoint ip and route error: %v", err)
-	}
-	return configurePortMapping(netEndPoint)
-}
-
-// load all net config to network map
-func InitNet() error {
-	var bridgeDriver = BridgeNetDriver{}
-	netDriver[bridgeDriver.Name()] = &bridgeDriver
-
-	if err := os.MkdirAll(NetConfigRootPath, 0644); err != nil {
-		return fmt.Errorf("mkdir %s error: %v", NetConfigRootPath, err)
-	}
-
-	// check all net config file
-	if err := filepath.Walk(NetConfigRootPath, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
-
-		// load fileName as net name
-		_, fileName := filepath.Split(path)
-		nw := &Net{
-			Name: fileName,
-		}
-
-		// call load function to load net config file
-		if err := nw.load(path); err != nil {
-			return fmt.Errorf("load net config file %s error: %v", path, err)
-		}
-
-		// add net to network map
-		network[nw.Name] = nw
-		return nil
-	}); err != nil {
-		return err
-	}
-	return nil
-}
-
-// show all the nets
-func ListNet() error {
-	table := tabwriter.NewWriter(os.Stdout, 12, 1, 3, ' ', 0)
-	fmt.Fprint(table, "NAME\tDRIVER\tSUBNET\tGATEWAY\n")
-
-	for _, nw := range network {
-		fmt.Fprintf(table, "%s\t%s\t%s\t%s\n", nw.Name, nw.Driver, nw.IpRange.String(), nw.IpRange.IP.String())
-	}
-
-	if err := table.Flush(); err != nil {
-		return fmt.Errorf("flush table error: %v", err)
-	}
-	return nil
-}
-func DeleteNet(netName string) error {
-	// check if the net exists
-	nw, ok := network[netName]
-	if !ok {
-		return fmt.Errorf("no such network: %s", netName)
-	}
-
-	// Release ip for the subnet
-	if err := ipAllocator.Release(nw.IpRange, &nw.IpRange.IP); err != nil {
-		return fmt.Errorf("release ip for subnet %s failed, err: %v", nw.IpRange.String(), err)
-	}
-
-	// delete the net device and config file
-	if err := netDriver[nw.Driver].Delete(nw); err != nil {
-		return fmt.Errorf("delete network %s failed, err: %v", nw.Name, err)
-	}
-
-	return nw.remove(NetConfigRootPath)
-}
-
 // configEndpointIpAndRoute config ip address and route for the endpoint
-func configEndpointIpAndRoute(endpoint *NetPoint, info *container.Info) error {
+func ConfigEndpointIpAndRoute(endpoint *NetPoint, pid string) error {
 	// get t
 	veth, err := netlink.LinkByName(endpoint.Device.PeerName)
 	if err != nil {
@@ -184,7 +55,7 @@ func configEndpointIpAndRoute(endpoint *NetPoint, info *container.Info) error {
 	}
 
 	// set endpoint ip address to container net ns, after functioned, the process will quit the container net ns
-	defer enterContainerNetns(&veth, info)()
+	defer enterContainerNetns(&veth, pid)()
 
 	// get the container ip address and subnet
 	interfaceIp := *endpoint.Net.IpRange
@@ -224,10 +95,10 @@ func configEndpointIpAndRoute(endpoint *NetPoint, info *container.Info) error {
 }
 
 // enterContainerNetns return a function pointer, when the function is called, the process will quit the container netns
-func enterContainerNetns(link *netlink.Link, info *container.Info) func() {
+func enterContainerNetns(link *netlink.Link, pid string) func() {
 
 	// we can get the container netns file from /proc/[pid]/ns/net
-	function, err := os.OpenFile(fmt.Sprintf("/proc/%s/ns/net", info.Pid), os.O_RDONLY, 0)
+	function, err := os.OpenFile(fmt.Sprintf("/proc/%s/ns/net", pid), os.O_RDONLY, 0)
 	if err != nil {
 		fmt.Printf("open container netns error: %v", err)
 		return nil
@@ -272,7 +143,7 @@ func enterContainerNetns(link *netlink.Link, info *container.Info) func() {
 	}
 }
 
-func configurePortMapping(endpoint *NetPoint) error {
+func ConfigurePortMapping(endpoint *NetPoint) error {
 
 	for _, pm := range endpoint.PortMapping {
 		mapArray := strings.Split(pm, ":")
@@ -295,7 +166,7 @@ func configurePortMapping(endpoint *NetPoint) error {
 	return nil
 }
 
-func (n *Net) dump(configPath string) error {
+func (n *Net) Dump(configPath string) error {
 
 	if err := os.MkdirAll(configPath, 0644); err != nil {
 		return err
@@ -312,7 +183,7 @@ func (n *Net) dump(configPath string) error {
 	return nil
 }
 
-func (n *Net) load(path string) error {
+func (n *Net) Load(path string) error {
 
 	configFile, err := os.Open(path)
 	if err != nil {
@@ -328,7 +199,7 @@ func (n *Net) load(path string) error {
 }
 
 // remove remove the net config file
-func (n *Net) remove(Path string) error {
+func (n *Net) Remove(Path string) error {
 	if _, err := os.Stat(Path); err != nil {
 		if os.IsNotExist(err) {
 			return nil

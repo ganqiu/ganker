@@ -9,6 +9,48 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func MountSet() error {
+
+	//set "/" as a private mount namespace's mount point
+	//as pivot is prohibited if parent mount is shared
+
+	rootfsMountFlags := syscall.MS_PRIVATE | syscall.MS_REC
+	if err := syscall.Mount("", "/", "", uintptr(rootfsMountFlags), ""); err != nil {
+		logrus.WithField("method", "syscall.Mount").Error(err)
+		return err
+	}
+
+	// get the current dir
+	pwd, err := os.Getwd()
+	if err != nil {
+		logrus.WithField("method", "os.Getwd").Error(err)
+		return err
+	}
+
+	// mount rootfs to the current dir
+	if err := pivotRoot(pwd); err != nil {
+		return err
+	}
+
+	procMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
+
+	// mount /proc to /proc
+	if err := syscall.Mount("", "/proc", "proc", uintptr(procMountFlags), ""); err != nil {
+		logrus.Errorf("mount proc error %v", err)
+		return err
+	}
+
+	tmpfsMountFlags := syscall.MS_NOSUID | syscall.MS_STRICTATIME
+
+	// mount /tmpfs to /sys
+	if err := syscall.Mount("tmpfs", "dev", "tmpfs", uintptr(tmpfsMountFlags), "mode=755"); err != nil {
+		logrus.Errorf("mount tmpfs error %v", err)
+		return err
+	}
+
+	return nil
+}
+
 // it is used to pivot rootfs to a new rootfs
 func pivotRoot(root string) error {
 
@@ -55,46 +97,4 @@ func pivotRoot(root string) error {
 
 	// remove temporary dir pivotDir
 	return os.Remove(pivotDir)
-}
-
-func MountSet() error {
-
-	//set "/" as a private mount namespace's mount point
-	//as pivot is prohibited if parent mount is shared
-
-	rootfsMountFlags := syscall.MS_PRIVATE | syscall.MS_REC
-	if err := syscall.Mount("", "/", "", uintptr(rootfsMountFlags), ""); err != nil {
-		logrus.WithField("method", "syscall.Mount").Error(err)
-		return err
-	}
-
-	// get the current dir
-	pwd, err := os.Getwd()
-	if err != nil {
-		logrus.WithField("method", "os.Getwd").Error(err)
-		return err
-	}
-
-	// mount rootfs to the current dir
-	if err := pivotRoot(pwd); err != nil {
-		return err
-	}
-
-	procMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
-
-	// mount /proc to /proc
-	if err := syscall.Mount("", "/proc", "proc", uintptr(procMountFlags), ""); err != nil {
-		logrus.Errorf("mount proc error %v", err)
-		return err
-	}
-
-	tmpfsMountFlags := syscall.MS_NOSUID | syscall.MS_STRICTATIME
-
-	// mount /tmpfs to /sys
-	if err := syscall.Mount("tmpfs", "dev", "tmpfs", uintptr(tmpfsMountFlags), "mode=755"); err != nil {
-		logrus.Errorf("mount tmpfs error %v", err)
-		return err
-	}
-
-	return nil
 }

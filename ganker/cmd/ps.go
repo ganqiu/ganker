@@ -15,7 +15,7 @@ var (
 
 		Run: func(cmd *cobra.Command, args []string) {
 			container.ShowContainersInfo(all)
-			return
+
 		},
 	}
 )

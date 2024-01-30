@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RunContainer(tty bool, comArray []string, imageName string, volume string, resourceConfig *subsystem.ResourceConfig, containerName string, env []string) {
+func RunContainer(tty bool, comArray []string, imageName string, volume string, resourceConfig *subsystem.ResourceConfig, containerName, network string, env, portMapping []string) {
 	id := generateContainerId(15)
 	if containerName == "" {
 		containerName = imageName + "-" + id[:10]
@@ -27,11 +27,14 @@ func RunContainer(tty bool, comArray []string, imageName string, volume string, 
 		return
 	}
 
-	if err := recordContainerInfo(strconv.Itoa(parent.Process.Pid), id, containerName, imageName, volume, comArray); err != nil {
+	if err := recordContainerInfo(strconv.Itoa(parent.Process.Pid), id, containerName, imageName, volume, portMapping, comArray); err != nil {
 		logrus.Error("fail to create container info: %v", err)
 		return
 	}
 
+	if network != "" {
+
+	}
 	// Initialize cGroup manager
 	cGroupManager := cgroup.NewCgroupManager("GankerCgroup" + "/" + containerId)
 	// set resource limitation

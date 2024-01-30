@@ -1,15 +1,14 @@
 package network
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"strings"
-)
 
-const ipamAllocatorPath = "./networks/ipam.json"
+	json "github.com/goccy/go-json"
+)
 
 type IPAM struct {
 	SubnetAllocator string            `json:"subnet_allocator"`
@@ -137,8 +136,4 @@ func (ipam *IPAM) Release(subnet *net.IPNet, ipaddr *net.IP) error {
 		return fmt.Errorf("dump ipam error: %v", err)
 	}
 	return nil
-}
-
-var ipAllocator = &IPAM{
-	SubnetAllocator: ipamAllocatorPath,
 }

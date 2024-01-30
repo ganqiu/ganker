@@ -21,6 +21,8 @@ var (
 	image         string
 	containerName string
 	envSlice      []string
+	netName       string
+	portMapping   []string
 )
 
 // Define the run command
@@ -39,7 +41,7 @@ var (
 				tty = false
 			}
 
-			container.RunContainer(tty, args, image, volume, ResourceConfig, containerName, envSlice)
+			container.RunContainer(tty, args, image, volume, ResourceConfig, containerName, netName, envSlice, portMapping)
 		},
 	}
 )
@@ -56,4 +58,6 @@ func init() {
 	runCmd.Flags().BoolVarP(&detach, "detach", "d", false, "detach container")
 	runCmd.Flags().StringVarP(&containerName, "name", "n", "", "container name")
 	runCmd.Flags().StringSliceVarP(&envSlice, "env", "e", []string{}, "set environment")
+	runCmd.Flags().StringSliceVarP(&portMapping, "portmapping", "p", []string{}, "port mapping")
+	runCmd.Flags().StringVarP(&netName, "network", "w", "", "container network")
 }

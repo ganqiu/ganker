@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"go_docker_learning/ganker/container"
+
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -20,7 +21,6 @@ var (
 			}
 			containerID := args[0]
 			container.StopContainer(containerID)
-			return
 		},
 	}
 )

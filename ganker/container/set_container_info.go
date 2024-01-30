@@ -1,7 +1,6 @@
 package container
 
 import (
-	"encoding/json"
 	"fmt"
 	"go_docker_learning/ganker/cgroup"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	json "github.com/goccy/go-json"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -32,7 +33,7 @@ type Info struct {
 	PortMapping []string `json:"portmapping"`  // 容器的端口映射
 }
 
-func recordContainerInfo(cPid, containerId, containerName, imageName, volume string, commandArray []string) error {
+func recordContainerInfo(cPid, containerId, containerName, imageName, volume string, portMapping, commandArray []string) error {
 	createTime := time.Now().Format("2006-01-02 15:04:05")
 	command := strings.Join(commandArray, "")
 	containerInfo := &Info{
