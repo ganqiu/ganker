@@ -6,7 +6,8 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"syscall"
+
+	syscall "golang.org/x/sys/unix"
 
 	log "github.com/sirupsen/logrus"
 )

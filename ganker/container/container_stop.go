@@ -1,11 +1,12 @@
 package container
 
 import (
-	log "github.com/sirupsen/logrus"
 	"go_docker_learning/ganker/cgroup"
 	"os"
 	"strconv"
-	"syscall"
+
+	log "github.com/sirupsen/logrus"
+	syscall "golang.org/x/sys/unix"
 )
 
 func StopContainer(containerId string) {

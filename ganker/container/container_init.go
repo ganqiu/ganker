@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"syscall"
+
+	syscall "golang.org/x/sys/unix"
 
 	"github.com/sirupsen/logrus"
 )

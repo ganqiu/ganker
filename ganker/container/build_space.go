@@ -6,8 +6,9 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"syscall"
 	"time"
+
+	syscall "golang.org/x/sys/unix"
 
 	log "github.com/sirupsen/logrus"
 )

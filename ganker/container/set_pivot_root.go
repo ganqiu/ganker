@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"syscall"
+
+	syscall "golang.org/x/sys/unix"
 
 	"github.com/sirupsen/logrus"
 )
